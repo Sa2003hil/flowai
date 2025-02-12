@@ -1,9 +1,11 @@
 import { CardBody, CardContainer, CardItem } from '@/components/global/3d-card'
 import { HeroParallax } from '@/components/global/connect-parallax'
 import { ContainerScroll } from '@/components/global/container-scroll-animation'
+import Footer from '@/components/global/footer'
 import { InfiniteMovingCards } from '@/components/global/infinite-moving-cards'
 import { LampComponent } from '@/components/global/lamp'
 import Navbar from '@/components/global/navbar'
+import NavbarWrapper from '@/components/global/NavWrapper'
 import { Button } from '@/components/ui/button'
 import { clients, products } from '@/lib/constant'
 import { CheckIcon } from 'lucide-react'
@@ -13,7 +15,7 @@ export default function Home() {
   //WIP: remove fault IMAge for home page
   return (
     <main className="flex items-center justify-center flex-col">
-      <Navbar />
+      <NavbarWrapper />
       <section className="h-screen w-full  bg-neutral-950 rounded-md  !overflow-visible relative flex flex-col items-center  antialiased">
         <div className="absolute inset-0  h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_35%,#223_100%)]"></div>
         <div className="flex flex-col mt-[-100px] md:mt-[-50px]">
@@ -36,6 +38,12 @@ export default function Home() {
           />
         </div>
       </section>
+
+
+      <div>
+        <Footer />
+      </div>
+
       {/* <InfiniteMovingCards
         className="md:mt-[18rem] mt-[-100px]"
         items={clients}

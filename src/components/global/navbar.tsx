@@ -1,46 +1,94 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import React from 'react'
-import { MenuIcon } from 'lucide-react'
-import { UserButton, currentUser } from '@clerk/nextjs'
+"use client";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useRef, useState, RefObject } from "react";
+import { MenuIcon, XIcon } from "lucide-react";
+import { UserButton } from "@clerk/nextjs"; // Remove currentUser from here
+import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { useClickOutside } from "@/hooks/use-click-outside";
+import AnimationContainer from "@/components/global/animation-container";
+import Icons from "@/components/global/icons";
+import Wrapper from "@/components/global/wrapper";
+import { NAV_LINKS } from "@/constants/nav-links";
+import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
 
-type Props = {}
+type Props = {
+  user: any; // Accept user as a prop
+};
 
-const Navbar = async (props: Props) => {
-  const user = await currentUser()
+const Navbar = ({ user }: Props) => {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState<boolean>(false);
+
+  const mobileMenuRef = useClickOutside(() => {
+    if (open) setOpen(false);
+  });
+
+  const { scrollY } = useScroll({
+    target: ref as RefObject<HTMLDivElement>,
+    offset: ["start start", "end start"],
+  });
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    if (latest > 100) {
+      setVisible(true);
+    } else {
+      setVisible(false);
+    }
+  });
+
   return (
-    <header className="fixed right-0 left-0 top-0 py-4 px-4 bg-black/40 backdrop-blur-lg z-[100] flex items-center border-b-[1px] border-neutral-900 justify-between">
-      <aside className="flex items-center gap-[2px]">
-        <p className="text-3xl font-bold"><span className='text-violet-400'>flow</span>AI</p>
-      </aside>
-      <nav className="absolute left-[50%] top-[50%] transform translate-x-[-50%] translate-y-[-50%] hidden md:block">
-        <ul className="flex items-center text-sm gap-7 list-none">
-          <li>
-            <Link href="#">Products</Link>
-          </li>
-          <li>
-            <Link href="#">Pricing</Link>
-          </li>
-          <li>
-            <Link href="#">Clients</Link>
-          </li>
-        </ul>
-      </nav>
-      <aside className="flex items-center gap-4">
-        <Link
-          href="/dashboard"
-          className="relative inline-flex h-10 overflow-hidden rounded-full p-[2px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-        >
-          <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
-          <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-slate-950 px-3 py-1 text-sm font-medium text-white backdrop-blur-3xl">
-            {user ? 'Dashboard' : 'Get Started'}
-          </span>
-        </Link>
-        {user ? <UserButton afterSignOutUrl="/" /> : null}
-        <MenuIcon className="md:hidden" />
-      </aside>
-    </header>
-  )
-}
+    <header className="fixed w-full top-0 inset-x-0 z-50">
+      <motion.div
+        animate={{ width: visible ? "40%" : "100%", y: visible ? 20 : 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 40 }}
+        style={{ minWidth: "800px" }}
+        className={cn(
+          "hidden lg:flex bg-transparent self-start items-center justify-between py-4 rounded-full relative z-[50] mx-auto w-full backdrop-blur",
+          visible && "bg-background/60 py-2 border border-t-foreground/20 border-b-foreground/10 border-x-foreground/15 w-full"
+        )}
+      >
+        <Wrapper className="flex items-center justify-between lg:px-4">
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+            <Link href="/" className="flex items-center gap-2">
+              {/* <Icons.logo className="w-max h-6 -mt-1" /> */}
+              <Image src="/logo.png" alt="logo" width={100} height={30} />
+            </Link>
+          </motion.div>
 
-export default Navbar
+          <div className="hidden lg:flex flex-row flex-1 absolute inset-0 items-center justify-center w-max mx-auto gap-x-2 text-sm text-muted-foreground font-medium">
+            <AnimatePresence>
+              {NAV_LINKS.map((link, index) => (
+                <AnimationContainer key={index} animation="fadeDown" delay={0.1 * index}>
+                  <div className="relative">
+                    <Link href={link.link} className="hover:text-foreground transition-all duration-500 hover:bg-accent rounded-md px-4 py-2">
+                      {link.name}
+                    </Link>
+                  </div>
+                </AnimationContainer>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          <AnimationContainer animation="fadeLeft" delay={0.1}>
+            <div className="flex items-center gap-x-4">
+              {user ? (
+                <Link href="/dashboard">
+                  <Button className="rounded-full">Dashboard</Button>
+                </Link>
+              ) : (
+                <Link href="/signup">
+                  <Button className="rounded-full" size="sm">Get started</Button>
+                </Link>
+              )}
+            </div>
+          </AnimationContainer>
+        </Wrapper>
+      </motion.div>
+    </header>
+  );
+};
+
+export default Navbar;
